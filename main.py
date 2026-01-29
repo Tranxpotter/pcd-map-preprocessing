@@ -5,9 +5,9 @@ from functools import reduce
 
 #Parameters
 map_path = "../maps/IW-LG-scans-02.pcd"
-save_path = "../maps/IW-LG-scans-02-processed.pcd"
+save_path = "../maps/IW-LG-scans-02-processed2.pcd"
 y_tilt_angle = -60
-voxel_size = 0.5
+voxel_size = 0.1
 
 #Read pcd map
 pc: PointCloud = PointCloud.from_path(map_path)
