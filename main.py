@@ -4,8 +4,8 @@ from scipy.spatial.transform import Rotation as R
 from functools import reduce
 
 #Parameters
-map_path = "../maps/LG-scans-03.pcd"
-save_path = "../maps/LG-scans-03-processed-01.pcd"
+map_path = "../maps/tunnel-scan.pcd"
+save_path = "../maps/tunnel-scan-processed.pcd"
 y_tilt_angle = 0
 voxel_size = 0.1
 
