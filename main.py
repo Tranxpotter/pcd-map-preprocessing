@@ -1,43 +1,51 @@
 from pypcd4.pypcd4 import PointCloud
+import argparse
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 from functools import reduce
 
-#Parameters
-map_path = "../maps/tunnel-scan.pcd"
-save_path = "../maps/tunnel-scan-processed.pcd"
-y_tilt_angle = 0
-voxel_size = 0.1
+def main(map_path, save_path):
+    #Parameters
+    y_tilt_angle = 0
+    voxel_size = 0.1
 
-#Read pcd map
-pc: PointCloud = PointCloud.from_path(map_path)
-points:np.ndarray = pc.numpy(["x", "y", "z", "intensity"])
-original_count = len(points)
+    #Read pcd map
+    pc: PointCloud = PointCloud.from_path(map_path)
+    points:np.ndarray = pc.numpy(["x", "y", "z", "intensity"])
+    original_count = len(points)
 
-# Extract xyz and intensity
-xyz = points[:, :3].copy()
-intensity = points[:, 3].copy()
-#Rotation matrix
-r = R.from_euler('y', y_tilt_angle, degrees=True)
-rot_matrix = r.as_matrix().astype(np.float32)
+    # Extract xyz and intensity
+    xyz = points[:, :3].copy()
+    intensity = points[:, 3].copy()
+    #Rotation matrix
+    r = R.from_euler('y', y_tilt_angle, degrees=True)
+    rot_matrix = r.as_matrix().astype(np.float32)
 
-# Downsampling
-voxel_coords = np.floor(xyz / voxel_size).astype(np.int32)
-# Find unique voxels and get their first index
-_, unique_indices = np.unique(voxel_coords, axis=0, return_index=True)
-xyz = xyz[unique_indices]
-intensity = intensity[unique_indices]
-print(f"Downsampled from {original_count} to {len(xyz)} points.")
+    # Downsampling
+    voxel_coords = np.floor(xyz / voxel_size).astype(np.int32)
+    # Find unique voxels and get their first index
+    _, unique_indices = np.unique(voxel_coords, axis=0, return_index=True)
+    xyz = xyz[unique_indices]
+    intensity = intensity[unique_indices]
+    print(f"Downsampled from {original_count} to {len(xyz)} points.")
 
-# Rotate only xyz while retaining intensity
-xyz_array = np.column_stack([xyz[:, 0], xyz[:, 1], xyz[:, 2]]).astype(np.float32)
-xyz_rotated = np.dot(xyz_array, rot_matrix.T).astype(np.float32)
+    # Rotate only xyz while retaining intensity
+    xyz_array = np.column_stack([xyz[:, 0], xyz[:, 1], xyz[:, 2]]).astype(np.float32)
+    xyz_rotated = np.dot(xyz_array, rot_matrix.T).astype(np.float32)
 
-# Reshape intensity to (n, 1)
-intensity = intensity.reshape(-1, 1)
-xyzi = np.hstack((xyz, intensity))
+    # Reshape intensity to (n, 1)
+    intensity = intensity.reshape(-1, 1)
+    xyzi = np.hstack((xyz, intensity))
 
-# Create new point cloud with rotated xyz and original intensity
-new_pc = PointCloud.from_xyzi_points(xyzi)
-new_pc.save(save_path)
+    # Create new point cloud with rotated xyz and original intensity
+    new_pc = PointCloud.from_xyzi_points(xyzi)
+    new_pc.save(save_path)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Process and downsample a PCD map.")
+    parser.add_argument("map_path", help="Path to input PCD map.")
+    parser.add_argument("save_path", help="Path to save processed PCD map.")
+    args = parser.parse_args()
+    main(args.map_path, args.save_path)
 
