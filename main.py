@@ -6,7 +6,9 @@ from functools import reduce
 
 def main(map_path, save_path):
     #Parameters
-    y_tilt_angle = 0
+    x_angle = 0
+    y_tilt_angle = 180
+    z_angle = 180
     voxel_size = 0.1
 
     #Read pcd map
@@ -18,16 +20,16 @@ def main(map_path, save_path):
     xyz = points[:, :3].copy()
     intensity = points[:, 3].copy()
     #Rotation matrix
-    r = R.from_euler('y', y_tilt_angle, degrees=True)
+    r = R.from_euler('xyz', [x_angle, y_tilt_angle, z_angle], degrees=True)
     rot_matrix = r.as_matrix().astype(np.float32)
 
-    # Downsampling
-    voxel_coords = np.floor(xyz / voxel_size).astype(np.int32)
-    # Find unique voxels and get their first index
-    _, unique_indices = np.unique(voxel_coords, axis=0, return_index=True)
-    xyz = xyz[unique_indices]
-    intensity = intensity[unique_indices]
-    print(f"Downsampled from {original_count} to {len(xyz)} points.")
+    # # Downsampling
+    # voxel_coords = np.floor(xyz / voxel_size).astype(np.int32)
+    # # Find unique voxels and get their first index
+    # _, unique_indices = np.unique(voxel_coords, axis=0, return_index=True)
+    # xyz = xyz[unique_indices]
+    # intensity = intensity[unique_indices]
+    # print(f"Downsampled from {original_count} to {len(xyz)} points.")
 
     # Rotate only xyz while retaining intensity
     xyz_array = np.column_stack([xyz[:, 0], xyz[:, 1], xyz[:, 2]]).astype(np.float32)
@@ -35,7 +37,7 @@ def main(map_path, save_path):
 
     # Reshape intensity to (n, 1)
     intensity = intensity.reshape(-1, 1)
-    xyzi = np.hstack((xyz, intensity))
+    xyzi = np.hstack((xyz_rotated, intensity))
 
     # Create new point cloud with rotated xyz and original intensity
     new_pc = PointCloud.from_xyzi_points(xyzi)
